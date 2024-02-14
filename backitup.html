@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
+    <meta name="version" content="v1.0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Back It Up</title>
     <style>
@@ -9,11 +10,13 @@
             font-size: 25px;
             margin: 5px;
         }
+
         input {
             font-size: 25px;
             margin: 5px;
             width: 200px;
         }
+
         button {
             font-size: 25px;
             margin: 5px;
@@ -54,15 +57,23 @@
 
             let number = parseFloat(inputValue);
 
+            const bracketInterval = 1600.0;
+            const baseStateTax = .07;
+            const localTax = .0225;
+            const extraStateTax = .0275;
+
             let result = 0;
-            if (number <= 1600) {
-                result = number / 1.0925;
+            let lowBracketResult = number / (1.0 + baseStateTax + localTax);
+            let midBracketResult = (number - localTax * bracketInterval + extraStateTax * bracketInterval) / (1.0 + baseStateTax + extraStateTax)
+            let highBracketResult = (number - localTax * bracketInterval - extraStateTax * bracketInterval) / (1.0 + baseStateTax)
+            if (lowBracketResult <= bracketInterval) {
+                result = lowBracketResult;
             }
-            else if (number <= 3200) {
-                result = 1600.0 / 1.0925 + (number - 1600.0) / 1.0975;
+            else if (midBracketResult <= bracketInterval * 2.0) {
+                result = midBracketResult;
             }
             else {
-                result = 1600.0 / 1.0925 + 1600.0 / 1.0975 + (number - 3200.0) / 1.07;
+                result = highBracketResult;
             }
 
             let roundedSubtotal = result.toFixed(2);
