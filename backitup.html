@@ -3,28 +3,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=5.0">
-    <title></title>
+    <title>Back It Up</title>
     <style>
-        /* General large text styling (may apply to tablets too) */
-        p {
-            font-size: 1.2em;
-            line-height: 1.5em;
+        label {
+            font-size: 25px;
+            margin: 5px;
         }
-
+        input {
+            font-size: 25px;
+            margin: 5px;
+            width: 200px;
+        }
         button {
-            font-size: 1.2em;
+            font-size: 25px;
+            margin: 5px;
             padding: 15px 30px;
-        }
-
-        /* Styles specifically for smaller mobile screens */
-        @media only screen and (max-width: 600px) { /* Adjust breakpoint as needed */
-            p {
-                font-size: 1.5em; /* Even larger text on mobile */
-            }
-
-            button {
-                padding: 20px 40px; /* Larger button area */
-            }
         }
     </style>
 </head>
@@ -36,11 +29,56 @@
         <input id="outTheDoorPrice" />
     </div>
     <div>
-        <button id="backItUp">Back It Up</button>
+        <button id="backItUp" onclick="calcSubtotal">Back It Up</button>
+    </div>
+    <div>
+        <label for="subTotal">Subtotal:</label>
+    </div>
+    <div>
+        <input readonly id="subTotal" />
+    </div>
+    <div>
+        <label for="tax">Tax:</label>
+    </div>
+    <div>
+        <input readonly id="tax" />
     </div>
     <script>
+        function calcSubtotal() {
+            let numberInput = document.getElementById('outTheDoorPrice');
+            let inputValue = numberInput.value;
+
+            if (isNaN(inputValue) || inputValue.trim() === "") {
+                alert("Please enter a valid number");
+            }
+
+            let number = parseFloat(inputValue);
+
+            let result = 0;
+            if (number <= 1600) {
+                result = number / 1.0925;
+            }
+            else if (number <= 3200) {
+                result = 1600.0 / 1.0925 + (number - 1600.0) / 1.0975;
+            }
+            else {
+                result = 1600.0 / 1.0925 + 1600.0 / 1.0975 + (number - 3200.0) / 1.07;
+            }
+
+            let roundedSubtotal = result.toFixed(2);
+            let tax = (number - roundedSubtotal).toFixed(2);
+
+            document.getElementById('subTotal').value = roundedSubtotal;
+            document.getElementById('tax').value = tax;
+        }
         document.getElementById('backItUp').onclick = function () {
-            alert('Hi Eija ;)');
+            calcSubtotal();
+        };
+        document.getElementById('outTheDoorPrice').onkeydown = function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                calcSubtotal();
+            }
         };
     </script>
 </body>
