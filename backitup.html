@@ -2,14 +2,44 @@
 <html>
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=5.0">
     <title></title>
+    <style>
+        /* General large text styling (may apply to tablets too) */
+        p {
+            font-size: 1.2em;
+            line-height: 1.5em;
+        }
+
+        button {
+            font-size: 1.2em;
+            padding: 15px 30px;
+        }
+
+        /* Styles specifically for smaller mobile screens */
+        @media only screen and (max-width: 600px) { /* Adjust breakpoint as needed */
+            p {
+                font-size: 1.5em; /* Even larger text on mobile */
+            }
+
+            button {
+                padding: 20px 40px; /* Larger button area */
+            }
+        }
+    </style>
 </head>
 <body>
-    <label for="outTheDoorPrice">Out The Door Price:</label>
-    <input id="outTheDoorPrice" />
-    <button id="backItUp">Back It Up</button>
+    <div>
+        <label for="outTheDoorPrice">Out The Door Price:</label>
+    </div>
+    <div>
+        <input id="outTheDoorPrice" />
+    </div>
+    <div>
+        <button id="backItUp">Back It Up</button>
+    </div>
     <script>
-        document.getElementById('backItUp').onclick = function() {
+        document.getElementById('backItUp').onclick = function () {
             alert('Hi Eija ;)');
         };
     </script>
