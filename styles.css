@@ -1,0 +1,36 @@
+body {
+    background-color: #131314
+}
+
+a {
+    font-size: 25px;
+    margin: 5px;
+    display: inline-block;
+    color: #C2E7FF;
+}
+
+label {
+    color: #C2E7FF;
+    font-size: 25px;
+    margin: 5px;
+}
+
+input {
+    font-size: 25px;
+    color: #E3E3E3;
+    margin: 5px;
+    width: 200px;
+    border-radius: 5px;
+    background-color: #1E1F20;
+    border-color: #8d8f91;
+}
+
+button {
+    background-color: #8d8f91;
+    font-weight: bold;
+    font-size: 25px;
+    margin: 5px;
+    padding: 15px;
+    border-radius: 10px;
+    width: 208px;
+}

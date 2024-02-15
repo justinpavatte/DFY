@@ -5,24 +5,7 @@
     <meta name="version" content="v1.0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Back It Up</title>
-    <style>
-        label {
-            font-size: 25px;
-            margin: 5px;
-        }
-
-        input {
-            font-size: 25px;
-            margin: 5px;
-            width: 200px;
-        }
-
-        button {
-            font-size: 25px;
-            margin: 5px;
-            padding: 15px 30px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
     <div>
@@ -35,41 +18,39 @@
         <button id="backItUp" onclick="calcSubtotal">Back It Up</button>
     </div>
     <div>
-        <label for="subTotal">Subtotal:</label>
-    </div>
-    <div>
-        <input readonly id="subTotal" />
-    </div>
-    <div>
         <label for="tax">Tax:</label>
     </div>
     <div>
         <input readonly id="tax" />
     </div>
+    <div>
+        <label for="subTotal">Subtotal:</label>
+    </div>
+    <div>
+        <input readonly id="subTotal" />
+    </div>
+    <script src="constants.js"></script>
     <script>
         function calcSubtotal() {
             let numberInput = document.getElementById('outTheDoorPrice');
             let inputValue = numberInput.value;
 
             if (isNaN(inputValue) || inputValue.trim() === "") {
-                alert("Please enter a valid number");
+                document.getElementById('subTotal').value = "";
+                document.getElementById('tax').value = "";
+                return;
             }
 
             let number = parseFloat(inputValue);
 
-            const bracketInterval = 1600.0;
-            const baseStateTax = .07;
-            const localTax = .0225;
-            const extraStateTax = .0275;
-
             let result = 0;
-            let lowBracketResult = number / (1.0 + baseStateTax + localTax);
-            let midBracketResult = (number - localTax * bracketInterval + extraStateTax * bracketInterval) / (1.0 + baseStateTax + extraStateTax)
-            let highBracketResult = (number - localTax * bracketInterval - extraStateTax * bracketInterval) / (1.0 + baseStateTax)
-            if (lowBracketResult <= bracketInterval) {
+            let lowBracketResult = number / (1.0 + BASE_STATE_TAX + LOCAL_TAX);
+            let midBracketResult = (number - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)
+            let highBracketResult = (number - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)
+            if (lowBracketResult <= BRACKET_INTERVAL) {
                 result = lowBracketResult;
             }
-            else if (midBracketResult <= bracketInterval * 2.0) {
+            else if (midBracketResult <= BRACKET_INTERVAL * 2.0) {
                 result = midBracketResult;
             }
             else {
@@ -77,7 +58,7 @@
             }
 
             let roundedSubtotal = result.toFixed(2);
-            let tax = (number - roundedSubtotal).toFixed(2);
+            let tax = (number - result).toFixed(2);
 
             document.getElementById('subTotal').value = roundedSubtotal;
             document.getElementById('tax').value = tax;
