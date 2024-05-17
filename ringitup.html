@@ -19,7 +19,7 @@
         <input id="subTotal" inputmode="numeric" autofocus />
     </div>
     <div>
-        <button id="ringItUp" onclick="calcTax">Ring It Up</button>
+        <button id="ringItUp" onclick="calcTax()">Ring It Up</button>
     </div>
     <div>
         <label for="tax">Tax:</label>
@@ -67,9 +67,7 @@
             document.getElementById('tax').value = roundedTax;
             document.getElementById('outTheDoorPrice').value = total;
         }
-        document.getElementById('ringItUp').onclick = function () {
-            calcTax();
-        };
+        //make enter the accept button
         document.getElementById('subTotal').onkeydown = function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
