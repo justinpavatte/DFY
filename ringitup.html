@@ -12,31 +12,31 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <div>
-        <label for="subTotal">Subtotal:</label>
-    </div>
-    <div>
-        <input id="subTotal" inputmode="numeric" autofocus />
-    </div>
-    <div>
-        <button id="ringItUp" onclick="calcTax()">Ring It Up</button>
-    </div>
-    <div>
-        <label for="tax">Tax:</label>
-    </div>
-    <div>
-        <input readonly id="tax" />
-    </div>
-    <div>
-        <label for="outTheDoorPrice">Out The Door Price:</label>
-    </div>
-    <div>
-        <input readonly id="outTheDoorPrice" />
-    </div>
-    <div>
-        <span>v1.0</span>
+    <div class="container">
+        <div>
+            <label for="subTotal">Subtotal:</label>
+        </div>
+        <div>
+            <input id="subTotal" inputmode="numeric" autofocus />
+        </div>
+        <div>
+            <button id="ringItUp" onclick="calcTax()">Ring It Up</button>
+        </div>
+        <div>
+            <label for="tax">Tax:</label>
+        </div>
+        <div>
+            <input readonly id="tax" />
+        </div>
+        <div>
+            <label for="outTheDoorPrice">Out The Door Price:</label>
+        </div>
+        <div>
+            <input readonly id="outTheDoorPrice" />
+        </div>
     </div>
     <script src="constants.js"></script>
+    <script src="todoist.js"></script>
     <script>
         function calcTax() {
             let numberInput = document.getElementById('subTotal');
@@ -62,10 +62,17 @@
             }
 
             let roundedTax = result.toFixed(2);
-            let total = (number + result).toFixed(2);
+            let total = (number + parseFloat(roundedTax)).toFixed(2);
 
-            document.getElementById('tax').value = roundedTax;
-            document.getElementById('outTheDoorPrice').value = total;
+            document.getElementById('tax').value = "$" + roundedTax;
+            document.getElementById('outTheDoorPrice').value = "$" + total;
+            
+            writeToLog(`
+RING IT UP
+Subtotal: ${inputValue}
+Tax: ${roundedTax}
+Out The Door Price: ${total}
+`);
         }
         //make enter the accept button
         document.getElementById('subTotal').onkeydown = function (event) {
