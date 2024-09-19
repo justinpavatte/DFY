@@ -22,43 +22,45 @@
         <div>
             <button id="backItUp" onclick="calcSubtotal()">Back It Up</button>
         </div>
-        <div>
-            <label for="tax">Tax:</label>
-        </div>
-        <div>
-            <input readonly id="tax" />
-        </div>
-        <div>
-            <label for="subTotal">Subtotal:</label>
-        </div>
-        <div>
-            <input readonly id="subTotal" />
-        </div>
-        <div>
-            <br>
-            <label><i>Shortcut...</i></label>
-        </div>
-        <div>
-            <label for="frml" id="lblShor"></label>
-        </div>
-        <div>
-            <input readonly id="frml" />
-        </div>
-        <div>
-            <br>
-            <label><i>Details...</i></label>
-        </div>
-        <div>
-            <label for="frmlExpanded">expanded formula:</label>
-        </div>
-        <div>
-            <textarea readonly id="frmlExpanded" style="height: 250px;"></textarea>
-        </div>
-        <div>
-            <label for="frmlExpandedValues">expanded values:</label>
-        </div>
-        <div>
-            <textarea readonly id="frmlExpandedValues" style="height: 150px;"></textarea>
+        <div id="resultArea" style="display: none;">
+            <div>
+                <label for="tax">Tax:</label>
+            </div>
+            <div>
+                <input readonly id="tax" />
+            </div>
+            <div>
+                <label for="subTotal">Subtotal:</label>
+            </div>
+            <div>
+                <input readonly id="subTotal" />
+            </div>
+            <div>
+                <br>
+                <label><i>Shortcut...</i></label>
+            </div>
+            <div>
+                <label for="frml" id="lblShor"></label>
+            </div>
+            <div>
+                <input readonly id="frml" />
+            </div>
+            <div>
+                <br>
+                <label><i>Details...</i></label>
+            </div>
+            <div>
+                <label for="frmlExpanded">expanded formula:</label>
+            </div>
+            <div>
+                <textarea readonly id="frmlExpanded" style="height: 250px;"></textarea>
+            </div>
+            <div>
+                <label for="frmlExpandedValues">expanded values:</label>
+            </div>
+            <div>
+                <textarea readonly id="frmlExpandedValues" style="height: 150px;"></textarea>
+            </div>
         </div>
     </div>
     <script src="constants.js"></script>
@@ -107,6 +109,8 @@
 
             document.getElementById('subTotal').value = "$" + roundedSubtotal;
             document.getElementById('tax').value = "$" + tax;
+            
+            document.getElementById('resultArea').style.display = 'block';
             
             writeToLog(`
 BACK IT UP
