@@ -34,13 +34,39 @@
         <div>
             <input readonly id="outTheDoorPrice" />
         </div>
+        <div>
+            <br>
+            <label><i>Shortcut...</i></label>
+        </div>
+        <div>
+            <label for="frml" id="lblShor"></label>
+        </div>
+        <div>
+            <input readonly id="frml" />
+        </div>
+        <div>
+            <br>
+            <label><i>Details...</i></label>
+        </div>
+        <div>
+            <label for="frmlExpanded">expanded formula:</label>
+        </div>
+        <div>
+            <textarea readonly id="frmlExpanded" style="height: 250px;"></textarea>
+        </div>
+        <div>
+            <label for="frmlExpandedValues">expanded values:</label>
+        </div>
+        <div>
+            <textarea readonly id="frmlExpandedValues" style="height: 150px;"></textarea>
+        </div>
     </div>
     <script src="constants.js"></script>
     <script src="todoist.js"></script>
     <script>
         function calcTax() {
-            let numberInput = document.getElementById('subTotal');
-            let inputValue = numberInput.value;
+            let userInput = document.getElementById('subTotal');
+            let inputValue = userInput.value;
 
             if (isNaN(inputValue) || inputValue.trim() === "") {
                 document.getElementById('tax').value = "";
@@ -48,21 +74,33 @@
                 return;
             }
 
-            let number = parseFloat(inputValue);
+            let numberInput = parseFloat(inputValue);
 
             let result = 0;
-            if (number <= BRACKET_INTERVAL) {
-                result = number * (BASE_STATE_TAX + LOCAL_TAX);
+            if (numberInput <= BRACKET_INTERVAL) {
+                result = numberInput * (BASE_STATE_TAX + LOCAL_TAX);
+                document.getElementById('lblShor').innerText = "subtotal <= 1600";
+                document.getElementById('frml').value = "x*1.0925";
+                document.getElementById('frmlExpanded').value = "numberInput + numberInput * (BASE_STATE_TAX + LOCAL_TAX)";
+                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${numberInput} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
             }
-            else if (number <= BRACKET_INTERVAL * 2.0) {
-                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (number - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
+            else if (numberInput <= BRACKET_INTERVAL * 2.0) {
+                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (numberInput - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
+                document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
+                document.getElementById('frml').value = "1.0975x−8";
+                document.getElementById('frmlExpanded').value = "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (numberInput - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX)";
+                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + (${numberInput} - ${BRACKET_INTERVAL}) * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX})`;
             }
             else {
-                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (number - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
+                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (numberInput - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
+                document.getElementById('lblShor').innerText = "subtotal > 3200";
+                document.getElementById('frml').value = "1.07x+80";
+                document.getElementById('frmlExpanded').value = "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (numberInput - BRACKET_INTERVAL * 2) * BASE_STATE_TAX";
+                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX}) + (${numberInput} - ${BRACKET_INTERVAL} * 2) * ${BASE_STATE_TAX}`;
             }
 
             let roundedTax = result.toFixed(2);
-            let total = (number + parseFloat(roundedTax)).toFixed(2);
+            let total = (numberInput + parseFloat(roundedTax)).toFixed(2);
 
             document.getElementById('tax').value = "$" + roundedTax;
             document.getElementById('outTheDoorPrice').value = "$" + total;

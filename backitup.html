@@ -34,13 +34,39 @@
         <div>
             <input readonly id="subTotal" />
         </div>
+        <div>
+            <br>
+            <label><i>Shortcut...</i></label>
+        </div>
+        <div>
+            <label for="frml" id="lblShor"></label>
+        </div>
+        <div>
+            <input readonly id="frml" />
+        </div>
+        <div>
+            <br>
+            <label><i>Details...</i></label>
+        </div>
+        <div>
+            <label for="frmlExpanded">expanded formula:</label>
+        </div>
+        <div>
+            <textarea readonly id="frmlExpanded" style="height: 250px;"></textarea>
+        </div>
+        <div>
+            <label for="frmlExpandedValues">expanded values:</label>
+        </div>
+        <div>
+            <textarea readonly id="frmlExpandedValues" style="height: 150px;"></textarea>
+        </div>
     </div>
     <script src="constants.js"></script>
     <script src="todoist.js"></script>
     <script>
         function calcSubtotal() {
-            let numberInput = document.getElementById('outTheDoorPrice');
-            let inputValue = numberInput.value;
+            let userInput = document.getElementById('outTheDoorPrice');
+            let inputValue = userInput.value;
 
             if (isNaN(inputValue) || inputValue.trim() === "") {
                 document.getElementById('subTotal').value = "";
@@ -48,24 +74,36 @@
                 return;
             }
 
-            let number = parseFloat(inputValue);
+            let numberInput = parseFloat(inputValue);
 
             let result = 0;
-            let lowBracketResult = number / (1.0 + BASE_STATE_TAX + LOCAL_TAX);
-            let midBracketResult = (number - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)
-            let highBracketResult = (number - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)
+            let lowBracketResult = numberInput / (1.0 + BASE_STATE_TAX + LOCAL_TAX);
+            let midBracketResult = (numberInput - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)
+            let highBracketResult = (numberInput - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)
             if (lowBracketResult <= BRACKET_INTERVAL) {
                 result = lowBracketResult;
+                document.getElementById('lblShor').innerText = "subtotal <= 1600";
+                document.getElementById('frml').value = "x/1.0925";
+                document.getElementById('frmlExpanded').value = "numberInput / (1.0 + BASE_STATE_TAX + LOCAL_TAX)";
+                document.getElementById('frmlExpandedValues').value = `${numberInput} / (1.0 + ${BASE_STATE_TAX} + ${LOCAL_TAX})`;
             }
             else if (midBracketResult <= BRACKET_INTERVAL * 2.0) {
                 result = midBracketResult;
+                document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
+                document.getElementById('frml').value = "(x+8)/1.0975";
+                document.getElementById('frmlExpanded').value = "(numberInput - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)";
+                document.getElementById('frmlExpandedValues').value = `(${numberInput} - ${LOCAL_TAX} * ${BRACKET_INTERVAL} + ${EXTRA_STATE_TAX} * ${BRACKET_INTERVAL}) / (1.0 + ${BASE_STATE_TAX} + ${EXTRA_STATE_TAX})`;
             }
             else {
                 result = highBracketResult;
+                document.getElementById('lblShor').innerText = "subtotal > 3200";
+                document.getElementById('frml').value = "(x-80)/1.07";
+                document.getElementById('frmlExpanded').value = "(numberInput - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)";
+                document.getElementById('frmlExpandedValues').value = `(${numberInput} - ${LOCAL_TAX} * ${BRACKET_INTERVAL} - ${EXTRA_STATE_TAX} * ${BRACKET_INTERVAL}) / (1.0 + ${BASE_STATE_TAX})`;
             }
 
             let roundedSubtotal = result.toFixed(2);
-            let tax = (number - parseFloat(roundedSubtotal)).toFixed(2);
+            let tax = (numberInput - parseFloat(roundedSubtotal)).toFixed(2);
 
             document.getElementById('subTotal').value = "$" + roundedSubtotal;
             document.getElementById('tax').value = "$" + tax;

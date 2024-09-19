@@ -37,6 +37,17 @@ input {
     width: 95%;
 }
 
+textarea {
+    color: #E3E3E3;
+    background-color: #1E1F20;
+    border-color: #8d8f91;
+    font-size: 25px;
+    margin: 5px;
+    border-radius: 5px;
+    max-width: 400px;
+    width: 95%;
+}
+
 button {
     background-color: #8d8f91;
     font-weight: bold;
