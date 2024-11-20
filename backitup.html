@@ -64,6 +64,7 @@
         </div>
     </div>
     <script src="constants.js"></script>
+    <script src="helpers.js"></script>
     <script src="todoist.js"></script>
     <script>
         function calcSubtotal() {
@@ -104,8 +105,8 @@
                 document.getElementById('frmlExpandedValues').value = `(${numberInput} - ${LOCAL_TAX} * ${BRACKET_INTERVAL} - ${EXTRA_STATE_TAX} * ${BRACKET_INTERVAL}) / (1.0 + ${BASE_STATE_TAX})`;
             }
 
-            let roundedSubtotal = result.toFixed(2);
-            let tax = (numberInput - parseFloat(roundedSubtotal)).toFixed(2);
+            let roundedSubtotal = preciseRound(result, 2);
+            let tax = preciseRound(numberInput - parseFloat(roundedSubtotal), 2);
 
             document.getElementById('subTotal').value = "$" + roundedSubtotal;
             document.getElementById('tax').value = "$" + tax;

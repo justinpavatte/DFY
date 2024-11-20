@@ -64,6 +64,7 @@
         </div>
     </div>
     <script src="constants.js"></script>
+    <script src="helpers.js"></script>
     <script src="todoist.js"></script>
     <script>
         function calcTax() {
@@ -101,8 +102,8 @@
                 document.getElementById('frmlExpandedValues').value = `${numberInput} + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX}) + (${numberInput} - ${BRACKET_INTERVAL} * 2) * ${BASE_STATE_TAX}`;
             }
 
-            let roundedTax = result.toFixed(2);
-            let total = (numberInput + parseFloat(roundedTax)).toFixed(2);
+            let roundedTax = preciseRound(result, 2);
+            let total = preciseRound(numberInput + roundedTax, 2);
 
             document.getElementById('tax').value = "$" + roundedTax;
             document.getElementById('outTheDoorPrice').value = "$" + total;
