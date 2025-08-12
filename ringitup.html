@@ -105,8 +105,8 @@
             let roundedTax = preciseRound(result, 2);
             let total = preciseRound(numberInput + roundedTax, 2);
 
-            document.getElementById('tax').value = "$" + roundedTax;
-            document.getElementById('outTheDoorPrice').value = "$" + total;
+            document.getElementById('tax').value = roundedTax;
+            document.getElementById('outTheDoorPrice').value = total;
             
             document.getElementById('resultArea').style.display = 'block';
 

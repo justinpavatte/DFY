@@ -106,10 +106,23 @@
             }
 
             let roundedSubtotal = preciseRound(result, 2);
-            let tax = preciseRound(numberInput - parseFloat(roundedSubtotal), 2);
 
-            document.getElementById('subTotal').value = "$" + roundedSubtotal;
-            document.getElementById('tax').value = "$" + tax;
+            //since we have a rounded subtotal, recalculate the sales tax and update screen accordingly
+            let tax = 0;
+            if (roundedSubtotal <= BRACKET_INTERVAL) {
+                tax = roundedSubtotal * (BASE_STATE_TAX + LOCAL_TAX);
+            }
+            else if (roundedSubtotal <= BRACKET_INTERVAL * 2.0) {
+                tax = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (roundedSubtotal - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
+            }
+            else {
+                tax = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (roundedSubtotal - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
+            }
+            let roundedTax = preciseRound(tax, 2);
+
+            document.getElementById('subTotal').value = roundedSubtotal;
+            document.getElementById('tax').value = roundedTax;
+            document.getElementById('outTheDoorPrice').value = roundedSubtotal + roundedTax;
             
             document.getElementById('resultArea').style.display = 'block';
             
