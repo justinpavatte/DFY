@@ -14,15 +14,21 @@
 <body>
     <div class="container">
         <div>
-            <label for="subTotal">Subtotal:</label>
+            <label for="subTotal">Items:</label>
         </div>
-        <div>
-            <input id="subTotal" type="text" inputmode="decimal" autofocus />
+        <div id="subTotalsContainer">
+            <input id="subTotal" class="subTotalInput" type="text" inputmode="decimal" autofocus />
         </div>
         <div>
             <button id="ringItUp" onclick="calcTax()">Ring It Up</button>
         </div>
         <div id="resultArea" style="display: none;">
+            <div>
+                <label for="subtotalAll">Subtotal:</label>
+            </div>
+            <div>
+                <input readonly id="subtotalAll" />
+            </div>
             <div>
                 <label for="tax">Tax:</label>
             </div>
@@ -63,61 +69,142 @@
             </div>
         </div>
     </div>
+
     <script src="constants.js"></script>
     <script src="helpers.js"></script>
     <script src="todoist.js"></script>
     <script>
-        function calcTax() {
-            let userInput = document.getElementById('subTotal');
-            let inputValue = userInput.value;
+        function toNum(v) {
+            const t = String(v ?? '').trim();
+            if (t === '') return NaN;
+            const n = parseFloat(t);
+            return Number.isFinite(n) ? n : NaN;
+        }
 
-            if (isNaN(inputValue) || inputValue.trim() === "") {
-                document.getElementById('tax').value = "";
-                document.getElementById('outTheDoorPrice').value = "";
+        function sumSubtotals() {
+            const inputs = document.querySelectorAll('.subTotalInput');
+            let s = 0;
+            for (const el of inputs) {
+                const n = toNum(el.value);
+                if (!Number.isNaN(n)) s += n;
+            }
+            return s;
+        }
+
+        function isLastInput(el) {
+            const inputs = document.querySelectorAll('.subTotalInput');
+            return inputs.length && inputs[inputs.length - 1] === el;
+        }
+
+        function addEmptyInput() {
+            const c = document.getElementById('subTotalsContainer');
+            const i = document.createElement('input');
+            i.type = 'text';
+            i.inputMode = 'decimal';
+            i.className = 'subTotalInput';
+            c.appendChild(i);
+            attachBehavior(i);
+        }
+
+        function attachBehavior(inputEl) {
+            inputEl.addEventListener('input', () => {
+                if (isLastInput(inputEl) && inputEl.value.trim() !== '') addEmptyInput();
+            });
+            inputEl.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    calcTax();
+                }
+            });
+        }
+
+        (function initMulti() {
+            attachBehavior(document.getElementById('subTotal'));
+        })();
+
+        function calcTax() {
+            const inputs = document.querySelectorAll('.subTotalInput');
+            const nums = [];
+            for (const el of inputs) {
+                const n = toNum(el.value);
+                if (!Number.isNaN(n)) nums.push(n);
+            }
+
+            if (nums.length > 1 && nums.some(v => v > BRACKET_INTERVAL)) {
+                alert('Single items over $1600 must be done on a separate sales ticket.');
                 return;
             }
 
-            let numberInput = parseFloat(inputValue);
+            let numberInput = nums.reduce((a,b)=>a+b,0);
+
+            if (!Number.isFinite(numberInput) || numberInput === 0) {
+                document.getElementById('subtotalAll').value = "";
+                document.getElementById('tax').value = "";
+                document.getElementById('outTheDoorPrice').value = "";
+                document.getElementById('resultArea').style.display = 'none';
+                return;
+            }
 
             let result = 0;
-            if (numberInput <= BRACKET_INTERVAL) {
+
+            if (nums.length > 1) {
                 result = numberInput * (BASE_STATE_TAX + LOCAL_TAX);
-                document.getElementById('lblShor').innerText = "subtotal <= 1600";
+                document.getElementById('lblShor').innerText = "multiple items <= 1600 each";
                 document.getElementById('frml').value = "x*1.0925";
-                document.getElementById('frmlExpanded').value = "numberInput + numberInput * (BASE_STATE_TAX + LOCAL_TAX)";
-                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${numberInput} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
-            }
-            else if (numberInput <= BRACKET_INTERVAL * 2.0) {
-                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (numberInput - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
-                document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
-                document.getElementById('frml').value = "1.0975x−8";
-                document.getElementById('frmlExpanded').value = "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (numberInput - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX)";
-                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + (${numberInput} - ${BRACKET_INTERVAL}) * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX})`;
-            }
+                document.getElementById('frmlExpanded').value = "subtotal * (BASE_STATE_TAX + LOCAL_TAX)";
+                document.getElementById('frmlExpandedValues').value = `${numberInput} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
+            } 
             else {
-                result = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (numberInput - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
-                document.getElementById('lblShor').innerText = "subtotal > 3200";
-                document.getElementById('frml').value = "1.07x+80";
-                document.getElementById('frmlExpanded').value = "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (numberInput - BRACKET_INTERVAL * 2) * BASE_STATE_TAX";
-                document.getElementById('frmlExpandedValues').value = `${numberInput} + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + ${BRACKET_INTERVAL} * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX}) + (${numberInput} - ${BRACKET_INTERVAL} * 2) * ${BASE_STATE_TAX}`;
+                const single = nums[0];
+
+                if (single <= BRACKET_INTERVAL) {
+                    result = single * (BASE_STATE_TAX + LOCAL_TAX);
+                    document.getElementById('lblShor').innerText = "subtotal <= 1600";
+                    document.getElementById('frml').value = "x*1.0925";
+                    document.getElementById('frmlExpanded').value = "numberInput + numberInput*(BASE_STATE_TAX+LOCAL_TAX)";
+                    document.getElementById('frmlExpandedValues').value = `${single} + ${single} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
+                }
+                else if (single <= BRACKET_INTERVAL * 2.0) {
+                    result =
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
+                        (single - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
+                    document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
+                    document.getElementById('frml').value = "1.0975x−8";
+                    document.getElementById('frmlExpanded').value =
+                        "BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)+(x-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX)";
+                    document.getElementById('frmlExpandedValues').value =
+                        `${BRACKET_INTERVAL} * (${BASE_STATE_TAX}+${LOCAL_TAX}) + (${single}-${BRACKET_INTERVAL}) * (${BASE_STATE_TAX}+${EXTRA_STATE_TAX})`;
+                }
+                else {
+                    result =
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) +
+                        (single - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
+                    document.getElementById('lblShor').innerText = "subtotal > 3200";
+                    document.getElementById('frml').value = "1.07x+80";
+                    document.getElementById('frmlExpanded').value =
+                        "BRACKET_INTERVAL*(BASE+LOCAL)+BRACKET_INTERVAL*(BASE+EXTRA)+(x-2*BRACKET_INTERVAL)*BASE";
+                    document.getElementById('frmlExpandedValues').value =
+                        `${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${LOCAL_TAX}) + ${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${EXTRA_STATE_TAX}) + (${single} - ${BRACKET_INTERVAL}*2) * ${BASE_STATE_TAX}`;
+                }
             }
 
             let roundedTax = preciseRound(result, 2);
             let total = preciseRound(numberInput + roundedTax, 2);
 
+            document.getElementById('subtotalAll').value = preciseRound(numberInput, 2);
             document.getElementById('tax').value = roundedTax;
             document.getElementById('outTheDoorPrice').value = total;
-            
             document.getElementById('resultArea').style.display = 'block';
 
             writeToLog(`
 RING IT UP
-Subtotal: ${inputValue}
+Subtotal: ${numberInput}
 Tax: ${roundedTax}
 Out The Door Price: ${total}
 `);
         }
-        //make enter the accept button
+
         document.getElementById('subTotal').onkeydown = function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
