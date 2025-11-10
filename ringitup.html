@@ -162,6 +162,7 @@
             const after=document.createElement('input');
             after.type='text';
             after.readOnly=true;
+            after.className='discountResult';
 
             grid.appendChild(lblD);
             grid.appendChild(lblAfter);
@@ -187,9 +188,12 @@
                 const d=normDiscount(dRaw);
                 if(Number.isFinite(p)){
                     const val=preciseRound(p*(1-d),2);
-                    after.value=val.toFixed(2);
+                    const fixed=val.toFixed(2);
+                    after.value=fixed;
+                    after.dataset.rounded=fixed;
                 }else{
                     after.value='';
+                    after.dataset.rounded='';
                 }
             }
 
@@ -197,9 +201,12 @@
             old.oninput=adjusted;
 
             btn.onclick=()=>{
-                discountWrap.style.display =
-                    discountWrap.style.display==='none'||discountWrap.style.display==='' ? 'block':'none';
+                const willShow = discountWrap.style.display==='none'||discountWrap.style.display==='';
+                discountWrap.style.display = willShow ? 'block':'none';
                 adjusted();
+                if(willShow){
+                    setTimeout(()=>{ disc.focus(); disc.select(); },0);
+                }
             };
         }
 
@@ -225,39 +232,53 @@
             attachBehavior(first);
         })();
 
+        function clearResults(){
+            document.getElementById('subtotalAll').value="";
+            document.getElementById('tax').value="";
+            document.getElementById('outTheDoorPrice').value="";
+            document.getElementById('frml').value="";
+            document.getElementById('frmlExpanded').value="";
+            document.getElementById('frmlExpandedValues').value="";
+            document.getElementById('lblShor').innerText="";
+            document.getElementById('resultArea').style.display='none';
+        }
+
         function calcTax(){
             const inputs=document.querySelectorAll('.subTotalInput');
             const nums=[];
             for(const el of inputs){
                 const wrap=el.parentElement.nextElementSibling;
                 let d=0;
+                let line=NaN;
                 if(wrap&&wrap.classList.contains('discountWrap')){
-                    const dv=toNum(wrap.querySelector('.discountInput').value);
+                    const discEl = wrap.querySelector('.discountInput');
+                    const dv=toNum(discEl.value);
                     if(Number.isFinite(dv)) d = dv>1?dv/100:Math.max(0,dv);
+                    const resEl = wrap.querySelector('.discountResult');
+                    const adj = toNum(resEl?.dataset.rounded);
+                    if(Number.isFinite(adj)) line = adj;
                 }
-                const p=toNum(el.value);
-                if(!Number.isNaN(p)){
-                    const adj=preciseRound(p*(1-d),2);
-                    nums.push(adj);
+                if(Number.isNaN(line)){
+                    const p=toNum(el.value);
+                    if(Number.isFinite(p)){
+                        line = preciseRound(p*(1-d),2);
+                    }
+                }
+                if(Number.isFinite(line)){
+                    nums.push(line);
                 }
             }
 
             if(nums.length>1 && nums.some(v=>v>BRACKET_INTERVAL)){
+                clearResults();
                 showPopup('Single items over $1600 must be done on a separate sales ticket.');
                 return;
             }
 
-            const numberInput = nums.reduce((a,b)=>a+b,0);
+            const numberInput = preciseRound(nums.reduce((a,b)=>a+b,0),2);
 
             if(!Number.isFinite(numberInput)||numberInput===0){
-                document.getElementById('subtotalAll').value="";
-                document.getElementById('tax').value="";
-                document.getElementById('outTheDoorPrice').value="";
-                document.getElementById('frml').value="";
-                document.getElementById('frmlExpanded').value="";
-                document.getElementById('frmlExpandedValues').value="";
-                document.getElementById('lblShor').innerText="";
-                document.getElementById('resultArea').style.display='none';
+                clearResults();
                 return;
             }
 
@@ -268,16 +289,15 @@
                 document.getElementById('lblShor').innerText = "multiple items <= 1600 each";
                 document.getElementById('frml').value = "x*1.0925";
                 document.getElementById('frmlExpanded').value = "subtotal * (BASE_STATE_TAX + LOCAL_TAX)";
-                document.getElementById('frmlExpandedValues').value = `${numberInput} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
+                document.getElementById('frmlExpandedValues').value = `${numberInput.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
             } else {
                 const single=nums[0];
-
                 if(single<=BRACKET_INTERVAL){
                     result = single*(BASE_STATE_TAX+LOCAL_TAX);
                     document.getElementById('lblShor').innerText = "subtotal <= 1600";
                     document.getElementById('frml').value = "x*1.0925";
                     document.getElementById('frmlExpanded').value = "numberInput + numberInput*(BASE_STATE_TAX+LOCAL_TAX)";
-                    document.getElementById('frmlExpandedValues').value = `${single} + ${single} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
+                    document.getElementById('frmlExpandedValues').value = `${single.toFixed(2)} + ${single.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
                 } else if(single<=BRACKET_INTERVAL*2.0){
                     result =
                         BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX) +
@@ -287,7 +307,7 @@
                     document.getElementById('frmlExpanded').value =
                         "BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)+(x-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX)";
                     document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL} * (${BASE_STATE_TAX}+${LOCAL_TAX}) + (${single}-${BRACKET_INTERVAL}) * (${BASE_STATE_TAX}+${EXTRA_STATE_TAX})`;
+                        `${BRACKET_INTERVAL.toFixed(2)} * (${BASE_STATE_TAX}+${LOCAL_TAX}) + (${single.toFixed(2)}-${BRACKET_INTERVAL.toFixed(2)}) * (${BASE_STATE_TAX}+${EXTRA_STATE_TAX})`;
                 } else {
                     result =
                         BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX) +
@@ -298,7 +318,7 @@
                     document.getElementById('frmlExpanded').value =
                         "BRACKET_INTERVAL*(BASE+LOCAL)+BRACKET_INTERVAL*(BASE+EXTRA)+(x-2*BRACKET_INTERVAL)*BASE";
                     document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${LOCAL_TAX}) + ${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${EXTRA_STATE_TAX}) + (${single} - ${BRACKET_INTERVAL}*2) * ${BASE_STATE_TAX}`;
+                        `${BRACKET_INTERVAL.toFixed(2)}*(${BASE_STATE_TAX}+${LOCAL_TAX}) + ${BRACKET_INTERVAL.toFixed(2)}*(${BASE_STATE_TAX}+${EXTRA_STATE_TAX}) + (${single.toFixed(2)} - ${(BRACKET_INTERVAL*2).toFixed(2)}) * ${BASE_STATE_TAX}`;
                 }
             }
 
@@ -312,9 +332,9 @@
 
             writeToLog(`
 RING IT UP
-Subtotal: ${numberInput}
-Tax: ${roundedTax}
-Out The Door Price: ${total}
+Subtotal: ${numberInput.toFixed(2)}
+Tax: ${roundedTax.toFixed(2)}
+Out The Door Price: ${total.toFixed(2)}
 `);
         }
 
