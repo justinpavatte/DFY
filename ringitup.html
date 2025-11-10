@@ -12,127 +12,180 @@
 </head>
 <body>
     <div class="container">
-        <div><label for="subTotal">Items:</label></div>
+
+        <!-- Header -->
+        <div class="headerRow" style="position:relative; height:46px; margin-bottom:4px;">
+            <label for="subTotal"
+                   style="position:absolute; left:0; top:15px;">
+                Items:
+            </label>
+
+            <button id="refreshBtn"
+                type="button"
+                aria-label="Refresh"
+                style="
+                    position:absolute;
+                    right:-5px;
+                    top:5px;
+                    width:34px;
+                    height:34px;
+                    border:1px solid #555;
+                    border-radius:6px;
+                    background:#222;
+                    color:#ddd;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:20px;
+                    line-height:1;
+                    cursor:pointer;
+                    -webkit-tap-highlight-color:transparent;
+                ">
+                ↻
+            </button>
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                document.getElementById("refreshBtn").onclick = () => location.reload();
+            });
+        </script>
+
         <div id="subTotalsContainer">
             <input id="subTotal" class="subTotalInput" type="text" inputmode="decimal" autofocus />
         </div>
         <div><button id="ringItUp" onclick="calcTax()">Ring It Up</button></div>
 
-        <div id="resultArea" style="display: none;">
+        <div id="resultArea" style="display:none;">
             <div><label for="subtotalAll">Subtotal:</label></div>
-            <div><input readonly id="subtotalAll" /></div>
+            <div><input readonly id="subtotalAll"></div>
 
             <div><label for="tax">Tax:</label></div>
-            <div><input readonly id="tax" /></div>
+            <div><input readonly id="tax"></div>
 
             <div><label for="outTheDoorPrice">Out The Door Price:</label></div>
-            <div><input readonly id="outTheDoorPrice" /></div>
+            <div><input readonly id="outTheDoorPrice"></div>
 
             <div><br><label><i>Shortcut...</i></label></div>
-            <div><label for="frml" id="lblShor"></label></div>
-            <div><input readonly id="frml" /></div>
+            <div><label id="lblShor"></label></div>
+            <div><input readonly id="frml"></div>
 
             <div><br><label><i>Details...</i></label></div>
 
             <div><label for="frmlExpanded">expanded formula:</label></div>
-            <div><textarea readonly id="frmlExpanded" style="height: 250px;"></textarea></div>
+            <div><textarea readonly id="frmlExpanded" style="height:250px;"></textarea></div>
 
             <div><label for="frmlExpandedValues">expanded values:</label></div>
-            <div><textarea readonly id="frmlExpandedValues" style="height: 150px;"></textarea></div>
+            <div><textarea readonly id="frmlExpandedValues" style="height:150px;"></textarea></div>
         </div>
     </div>
+
+
+    <!-- Popup -->
+    <div id="popup"
+         style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:99999;">
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,0.5)"></div>
+        <div style="position:relative; max-width:420px; width:90%; background:#222; border:1px solid #555;
+                    border-radius:10px; padding:16px; box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+            <div id="popupTitle" style="font-weight:600; margin-bottom:8px;">Notice</div>
+            <div id="popupMsg" style="margin-bottom:12px; white-space:pre-wrap;"></div>
+            <div style="display:flex; justify-content:flex-end;">
+                <button id="popupOk"
+                    style="padding:8px 14px; border:1px solid #555; border-radius:8px; background:#2a2a2a; color:#ddd;">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="constants.js"></script>
     <script src="helpers.js"></script>
     <script src="todoist.js"></script>
 
     <script>
-        function toNum(v) {
-            const t = String(v ?? '').trim();
-            if (t === '') return NaN;
-            const n = parseFloat(t);
-            return Number.isFinite(n) ? n : NaN;
+
+        /* Popup Logic */
+        function showPopup(msg){
+            const p=document.getElementById('popup');
+            document.getElementById('popupMsg').textContent=msg;
+            p.style.display='flex';
+            document.getElementById('popupOk').focus();
         }
+        function hidePopup(){document.getElementById('popup').style.display='none'}
+        document.getElementById('popupOk').onclick = hidePopup;
+        document.getElementById('popup').onclick = e => { if(e.target.id==='popup') hidePopup(); };
+        document.onkeydown = e => { if(e.key==='Escape') hidePopup(); };
 
-        function isLastInput(el) {
-            const inputs = document.querySelectorAll('.subTotalInput');
-            return inputs.length && inputs[inputs.length - 1] === el;
-        }
 
-        function makeLineForInput(inputEl) {
-            const c = document.getElementById('subTotalsContainer');
+        /* Helpers */
+        function toNum(v){const t=String(v??'').trim();if(t==='')return NaN;const n=parseFloat(t);return Number.isFinite(n)?n:NaN;}
+        function isLastInput(el){const inputs=document.querySelectorAll('.subTotalInput');return inputs.length&&inputs[inputs.length-1]===el;}
 
-            const row = document.createElement('div');
-            row.className = 'lineRow';
-            row.style.display = 'grid';
-            row.style.gridTemplateColumns = '1fr auto';
-            row.style.columnGap = '0px';
-            row.style.alignItems = 'center';
-            row.style.marginBottom = '4px';
+        function makeLineForInput(inputEl){
+            const c=document.getElementById('subTotalsContainer');
 
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'discToggleBtn';
-            btn.textContent = '↓';
-            btn.style.display = 'flex';
-            btn.style.alignItems = 'center';
-            btn.style.justifyContent = 'center';
-            btn.style.width = '34px';
-            btn.style.height = '30px';
-            btn.style.padding = '0';
-            btn.style.border = '1px solid #555';
-            btn.style.borderRadius = '6px';
-            btn.style.background = '#222';
-            btn.style.color = '#ddd';
-            btn.style.cursor = 'pointer';
-            btn.style.margin = '0 0 0 -1px';
-            btn.style.lineHeight = '1';
-            btn.style.fontSize = '18px';
+            const row=document.createElement('div');
+            row.className='lineRow';
+            row.style.display='grid';
+            row.style.gridTemplateColumns='1fr auto';
+            row.style.columnGap='0';
+            row.style.alignItems='center';
+            row.style.marginBottom='4px';
 
-            const discountWrap = document.createElement('div');
-            discountWrap.className = 'discountWrap';
-            discountWrap.style.display = 'none';
-            discountWrap.style.margin = '0 0 2px 24px';
+            const btn=document.createElement('button');
+            btn.textContent='↓';
+            btn.className='discToggleBtn';
+            btn.type='button';
+            Object.assign(btn.style,{
+                display:'flex',alignItems:'center',justifyContent:'center',
+                width:'34px',height:'30px',padding:'0',
+                border:'1px solid #555',borderRadius:'6px',
+                background:'#222',color:'#ddd',cursor:'pointer',
+                margin:'0 0 0 -1px',lineHeight:'1',fontSize:'18px'
+            });
 
-            const grid = document.createElement('div');
-            grid.style.display = 'grid';
-            grid.style.gridTemplateColumns = 'auto 1fr';
-            grid.style.columnGap = '12px';
-            grid.style.rowGap = '0';
+            const discountWrap=document.createElement('div');
+            discountWrap.className='discountWrap';
+            discountWrap.style.display='none';
+            discountWrap.style.margin='0 0 2px 24px';
 
-            const lblD = document.createElement('label');
-            lblD.textContent = 'Discount';
-            lblD.style.margin = '0 0 2px 6px';   /* ✅ SHIFT LABEL RIGHT */
+            const grid=document.createElement('div');
+            grid.style.display='grid';
+            grid.style.gridTemplateColumns='auto 1fr';
+            grid.style.columnGap='12px';
 
-            const lblAfter = document.createElement('label');
-            lblAfter.textContent = 'Result';
-            lblAfter.style.margin = '0 0 2px 6px';  /* ✅ SHIFT LABEL RIGHT */
+            /* ✅ NEW LABEL MARGINS (top -12px, bottom -5px) */
+            const lblD=document.createElement('label');
+            lblD.textContent='Discount';
+            lblD.style.margin='1px 0 -3px 6px';
 
-            const discWrap = document.createElement('div');
-            discWrap.style.display = 'inline-flex';
-            discWrap.style.alignItems = 'center';
-            discWrap.style.gap = '1px';
+            const lblAfter=document.createElement('label');
+            lblAfter.textContent='Result';
+            lblAfter.style.margin='1px 0 -3px 6px';
 
-            const disc = document.createElement('input');
-            disc.type = 'text';
-            disc.inputMode = 'decimal';
-            disc.className = 'discountInput';
-            disc.style.width = '70px';
-            disc.style.marginTop = '0';
+            const discWrap=document.createElement('div');
+            discWrap.style.display='inline-flex';
+            discWrap.style.alignItems='center';
+            discWrap.style.gap='1px';
 
-            const percentSuffix = document.createElement('span');
-            percentSuffix.textContent = '%';
-            percentSuffix.style.fontSize = '20px';
-            percentSuffix.style.lineHeight = '1';
-            percentSuffix.style.marginLeft = '0';
+            const disc=document.createElement('input');
+            disc.type='text';
+            disc.inputMode='decimal';
+            disc.className='discountInput';
+            disc.style.width='70px';
+
+            const percentSuffix=document.createElement('span');
+            percentSuffix.textContent='%';
+            percentSuffix.style.fontSize='20px';
+            percentSuffix.style.marginLeft='-2px';
 
             discWrap.appendChild(disc);
             discWrap.appendChild(percentSuffix);
 
-            const after = document.createElement('input');
-            after.type = 'text';
-            after.readOnly = true;
-            after.style.marginTop = '0';
+            const after=document.createElement('input');
+            after.type='text';
+            after.readOnly=true;
 
             grid.appendChild(lblD);
             grid.appendChild(lblAfter);
@@ -140,171 +193,124 @@
             grid.appendChild(after);
             discountWrap.appendChild(grid);
 
-            const old = inputEl;
-            const placeholder = document.createElement('span');
-            c.replaceChild(placeholder, old);
+            const old=inputEl;
+            const placeholder=document.createElement('span');
+            c.replaceChild(placeholder,old);
             row.appendChild(old);
             row.appendChild(btn);
-            c.replaceChild(row, placeholder);
-            c.insertBefore(discountWrap, row.nextSibling);
+            c.replaceChild(row,placeholder);
+            c.insertBefore(discountWrap,row.nextSibling);
 
-            function normDiscount(raw) {
-                if (!Number.isFinite(raw) || raw < 0) return 0;
-                return raw > 1 ? raw / 100 : raw;
+            function normDiscount(raw){if(!Number.isFinite(raw)||raw<0)return 0;return raw>1?raw/100:raw;}
+
+            function adjusted(){
+                const p=toNum(old.value);
+                const dRaw=toNum(disc.value);
+                const d=normDiscount(dRaw);
+                after.value = Number.isFinite(p) ? preciseRound(p*(1-d),2).toFixed(2) : '';
             }
 
-            function adjusted() {
-                const p = toNum(old.value);
-                const dRaw = toNum(disc.value);
-                const d = normDiscount(dRaw);
-                if (Number.isFinite(p)) {
-                    const val = preciseRound(p * (1 - d), 2);
-                    after.value = val.toFixed(2);
-                } else {
-                    after.value = '';
-                }
-            }
+            disc.oninput = adjusted;
+            old.oninput = adjusted;
 
-            disc.addEventListener('input', adjusted);
-            old.addEventListener('input', adjusted);
-
-            btn.addEventListener('click', () => {
+            btn.onclick = ()=>{
                 discountWrap.style.display =
-                    discountWrap.style.display === 'none' || discountWrap.style.display === ''
-                        ? 'block'
-                        : 'none';
+                    discountWrap.style.display==='none' ? 'block' : 'none';
                 adjusted();
-            });
+            };
         }
 
-        function addEmptyInput() {
-            const c = document.getElementById('subTotalsContainer');
-            const i = document.createElement('input');
-            i.type = 'text';
-            i.inputMode = 'decimal';
-            i.className = 'subTotalInput';
+        function addEmptyInput(){
+            const c=document.getElementById('subTotalsContainer');
+            const i=document.createElement('input');
+            i.type='text';
+            i.inputMode='decimal';
+            i.className='subTotalInput';
             c.appendChild(i);
             makeLineForInput(i);
             attachBehavior(i);
         }
 
-        function attachBehavior(inputEl) {
-            inputEl.addEventListener('input', () => {
-                if (isLastInput(inputEl) && inputEl.value.trim() !== '') addEmptyInput();
-            });
-            inputEl.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    calcTax();
-                }
-            });
+        function attachBehavior(inputEl){
+            inputEl.oninput=()=>{
+                if(isLastInput(inputEl)&&inputEl.value.trim()!=='')addEmptyInput();
+            };
+            inputEl.onkeydown=(e)=>{
+                if(e.key==='Enter'){e.preventDefault();calcTax();}
+            };
         }
 
-        (function initMulti() {
-            const first = document.getElementById('subTotal');
+        (function initMulti(){
+            const first=document.getElementById('subTotal');
             makeLineForInput(first);
             attachBehavior(first);
         })();
 
-        function calcTax() {
-            const inputs = document.querySelectorAll('.subTotalInput');
-            const nums = [];
-            for (const el of inputs) {
-                const wrap = el.parentElement.nextElementSibling;
-                let d = 0;
-                if (wrap && wrap.classList.contains('discountWrap')) {
-                    const disc = wrap.querySelector('.discountInput');
-                    const dv = toNum(disc.value);
-                    if (Number.isFinite(dv)) d = dv > 1 ? dv / 100 : Math.max(0, dv);
+        function calcTax(){
+            const inputs=document.querySelectorAll('.subTotalInput');
+            const nums=[];
+            for(const el of inputs){
+                const wrap=el.parentElement.nextElementSibling;
+                let d=0;
+                if(wrap&&wrap.classList.contains('discountWrap')){
+                    const dv=toNum(wrap.querySelector('.discountInput').value);
+                    if(Number.isFinite(dv))d=dv>1?dv/100:Math.max(0,dv);
                 }
-                const p = toNum(el.value);
-                if (!Number.isNaN(p)) {
-                    const adj = preciseRound(p * (1 - d), 2);
-                    nums.push(adj);
-                }
+                const p=toNum(el.value);
+                if(!Number.isNaN(p))nums.push(preciseRound(p*(1-d),2));
             }
 
-            if (nums.length > 1 && nums.some(v => v > BRACKET_INTERVAL)) {
-                alert('Single items over $1600 must be done on a separate sales ticket.');
+            if(nums.length>1&&nums.some(v=>v>BRACKET_INTERVAL)){
+                showPopup("Single items over $1600 must be done on a separate sales ticket.");
                 return;
             }
 
-            const numberInput = nums.reduce((a,b)=>a+b,0);
-
-            if (!Number.isFinite(numberInput) || numberInput === 0) {
-                document.getElementById('subtotalAll').value = "";
-                document.getElementById('tax').value = "";
-                document.getElementById('outTheDoorPrice').value = "";
-                document.getElementById('resultArea').style.display = 'none';
+            const subtotal = nums.reduce((a,b)=>a+b,0);
+            if(!Number.isFinite(subtotal)||subtotal===0){
+                document.getElementById('resultArea').style.display='none';
+                document.getElementById('subtotalAll').value="";
+                document.getElementById('tax').value="";
+                document.getElementById('outTheDoorPrice').value="";
                 return;
             }
 
-            let result = 0;
+            let tax=0;
 
-            if (nums.length > 1) {
-                result = numberInput * (BASE_STATE_TAX + LOCAL_TAX);
+            if(nums.length>1){
+                tax = subtotal*(BASE_STATE_TAX+LOCAL_TAX);
                 document.getElementById('lblShor').innerText = "multiple items <= 1600 each";
-                document.getElementById('frml').value = "x*1.0925";
-                document.getElementById('frmlExpanded').value = "subtotal * (BASE_STATE_TAX + LOCAL_TAX)";
-                document.getElementById('frmlExpandedValues').value = `${numberInput} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
-            } 
-            else {
-                const single = nums[0];
-
-                if (single <= BRACKET_INTERVAL) {
-                    result = single * (BASE_STATE_TAX + LOCAL_TAX);
-                    document.getElementById('lblShor').innerText = "subtotal <= 1600";
-                    document.getElementById('frml').value = "x*1.0925";
-                    document.getElementById('frmlExpanded').value = "numberInput + numberInput*(BASE_STATE_TAX+LOCAL_TAX)";
-                    document.getElementById('frmlExpandedValues').value = `${single} + ${single} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
-                }
-                else if (single <= BRACKET_INTERVAL * 2.0) {
-                    result =
-                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
-                        (single - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
-                    document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
-                    document.getElementById('frml').value = "1.0975x−8";
-                    document.getElementById('frmlExpanded').value =
-                        "BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)+(x-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX)";
-                    document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL} * (${BASE_STATE_TAX}+${LOCAL_TAX}) + (${single}-${BRACKET_INTERVAL}) * (${BASE_STATE_TAX}+${EXTRA_STATE_TAX})`;
-                }
-                else {
-                    result =
-                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
-                        BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) +
-                        (single - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
-                    document.getElementById('lblShor').innerText = "subtotal > 3200";
-                    document.getElementById('frml').value = "1.07x+80";
-                    document.getElementById('frmlExpanded').value =
-                        "BRACKET_INTERVAL*(BASE+LOCAL)+BRACKET_INTERVAL*(BASE+EXTRA)+(x-2*BRACKET_INTERVAL)*BASE";
-                    document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${LOCAL_TAX}) + ${BRACKET_INTERVAL}*(${BASE_STATE_TAX}+${EXTRA_STATE_TAX}) + (${single} - ${BRACKET_INTERVAL}*2) * ${BASE_STATE_TAX}`;
+            } else {
+                const single=nums[0];
+                if(single<=BRACKET_INTERVAL){
+                    tax=single*(BASE_STATE_TAX+LOCAL_TAX);
+                    document.getElementById('lblShor').innerText="subtotal <= 1600";
+                } else if(single<=BRACKET_INTERVAL*2){
+                    tax = BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)
+                        + (single-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX);
+                    document.getElementById('lblShor').innerText="1600 < subtotal <= 3200";
+                } else {
+                    tax = BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)
+                        + BRACKET_INTERVAL*(BASE_STATE_TAX+EXTRA_STATE_TAX)
+                        + (single - BRACKET_INTERVAL*2)*BASE_STATE_TAX;
+                    document.getElementById('lblShor').innerText="subtotal > 3200";
                 }
             }
 
-            const roundedTax = preciseRound(result, 2);
-            const total = preciseRound(numberInput + roundedTax, 2);
+            const total = preciseRound(subtotal+preciseRound(tax,2),2);
 
-            document.getElementById('subtotalAll').value = numberInput.toFixed(2);
-            document.getElementById('tax').value = roundedTax.toFixed(2);
-            document.getElementById('outTheDoorPrice').value = total.toFixed(2);
-            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('subtotalAll').value=subtotal.toFixed(2);
+            document.getElementById('tax').value=preciseRound(tax,2).toFixed(2);
+            document.getElementById('outTheDoorPrice').value=total.toFixed(2);
+            document.getElementById('resultArea').style.display='block';
 
             writeToLog(`
 RING IT UP
-Subtotal: ${numberInput}
-Tax: ${roundedTax}
+Subtotal: ${subtotal}
+Tax: ${tax}
 Out The Door Price: ${total}
 `);
         }
 
-        document.getElementById('subTotal').onkeydown = function (event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                calcTax();
-            }
-        };
     </script>
 </body>
 </html>
