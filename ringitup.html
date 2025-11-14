@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ring It Up</title>
+    <!-- https://favicon.io/favicon-converter/ -->
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
@@ -76,93 +77,93 @@
     <script src="todoist.js"></script>
 
     <script>
-        function showPopup(msg){
-            const p=document.getElementById('popup');
-            document.getElementById('popupMsg').textContent=msg;
-            p.style.display='flex';
+        function showPopup(msg) {
+            const p = document.getElementById('popup');
+            document.getElementById('popupMsg').textContent = msg;
+            p.style.display = 'flex';
             document.getElementById('popupOk').focus();
         }
-        function hidePopup(){document.getElementById('popup').style.display='none'}
+        function hidePopup() { document.getElementById('popup').style.display = 'none'; }
         document.getElementById('popupOk').onclick = hidePopup;
-        document.getElementById('popup').onclick = e => { if(e.target.id==='popup') hidePopup(); };
-        document.onkeydown = e => { if(e.key==='Escape') hidePopup(); };
+        document.getElementById('popup').onclick = e => { if (e.target.id === 'popup') hidePopup(); };
+        document.onkeydown = e => { if (e.key === 'Escape') hidePopup(); };
 
-        function toNum(v){
-            const t=String(v??'').trim();
-            if(t==='')return NaN;
-            const n=parseFloat(t);
-            return Number.isFinite(n)?n:NaN;
+        function toNum(v) {
+            const t = String(v ?? '').trim();
+            if (t === '') return NaN;
+            const n = parseFloat(t);
+            return Number.isFinite(n) ? n : NaN;
         }
-        function isLastInput(el){
-            const inputs=document.querySelectorAll('.subTotalInput');
-            return inputs.length&&inputs[inputs.length-1]===el;
+        function isLastInput(el) {
+            const inputs = document.querySelectorAll('.subTotalInput');
+            return inputs.length && inputs[inputs.length - 1] === el;
         }
 
-        function makeLineForInput(inputEl){
-            const c=document.getElementById('subTotalsContainer');
+        function makeLineForInput(inputEl) {
+            const c = document.getElementById('subTotalsContainer');
 
-            const row=document.createElement('div');
-            row.className='lineRow';
-            row.style.display='grid';
-            row.style.gridTemplateColumns='1fr auto';
-            row.style.columnGap='0';
-            row.style.alignItems='center';
-            row.style.marginBottom='4px';
+            const row = document.createElement('div');
+            row.className = 'lineRow';
+            row.style.display = 'grid';
+            row.style.gridTemplateColumns = '1fr auto';
+            row.style.columnGap = '0';
+            row.style.alignItems = 'center';
+            row.style.marginBottom = '4px';
 
-            const btn=document.createElement('button');
-            btn.type='button';
-            btn.className='discToggleBtn';
-            btn.textContent='↓';
-            Object.assign(btn.style,{
-                display:'flex',alignItems:'center',justifyContent:'center',
-                width:'34px',height:'30px',padding:'0',
-                border:'1px solid #555',borderRadius:'6px',
-                background:'#222',color:'#ddd',cursor:'pointer',
-                margin:'0 0 0 -1px',lineHeight:'1',fontSize:'18px'
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'discToggleBtn';
+            btn.textContent = '↓';
+            Object.assign(btn.style, {
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '34px', height: '30px', padding: '0',
+                border: '1px solid #555', borderRadius: '6px',
+                background: '#222', color: '#ddd', cursor: 'pointer',
+                margin: '0 0 0 -1px', lineHeight: '1', fontSize: '18px'
             });
 
-            const discountWrap=document.createElement('div');
-            discountWrap.className='discountWrap';
-            discountWrap.style.display='none';
-            discountWrap.style.margin='0 0 2px 24px';
+            const discountWrap = document.createElement('div');
+            discountWrap.className = 'discountWrap';
+            discountWrap.style.display = 'none';
+            discountWrap.style.margin = '0 0 2px 24px';
 
-            const grid=document.createElement('div');
-            grid.style.display='grid';
-            grid.style.gridTemplateColumns='auto 1fr';
-            grid.style.columnGap='12px';
+            const grid = document.createElement('div');
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = 'auto 1fr';
+            grid.style.columnGap = '12px';
 
-            const lblD=document.createElement('label');
-            lblD.textContent='Discount';
-            lblD.style.margin='0 0 2px 6px';
+            const lblD = document.createElement('label');
+            lblD.textContent = 'Discount';
+            lblD.style.margin = '0 0 2px 6px';
 
-            const lblAfter=document.createElement('label');
-            lblAfter.textContent='Result';
-            lblAfter.style.margin='0 0 2px 6px';
+            const lblAfter = document.createElement('label');
+            lblAfter.textContent = 'Result';
+            lblAfter.style.margin = '0 0 2px 6px';
 
-            const discWrap=document.createElement('div');
-            discWrap.style.display='inline-flex';
-            discWrap.style.alignItems='center';
-            discWrap.style.gap='1px';
+            const discWrap = document.createElement('div');
+            discWrap.style.display = 'inline-flex';
+            discWrap.style.alignItems = 'center';
+            discWrap.style.gap = '1px';
 
-            const disc=document.createElement('input');
-            disc.type='text';
-            disc.inputMode='decimal';
-            disc.className='discountInput';
-            disc.style.width='70px';
+            const disc = document.createElement('input');
+            disc.type = 'text';
+            disc.inputMode = 'decimal';
+            disc.className = 'discountInput';
+            disc.style.width = '70px';
 
-            const percentSuffix=document.createElement('span');
-            percentSuffix.textContent='%';
-            percentSuffix.style.fontSize='20px';
-            percentSuffix.style.lineHeight='1';
-            percentSuffix.style.marginLeft='0';
+            const percentSuffix = document.createElement('span');
+            percentSuffix.textContent = '%';
+            percentSuffix.style.fontSize = '20px';
+            percentSuffix.style.lineHeight = '1';
+            percentSuffix.style.marginLeft = '0';
 
             discWrap.appendChild(disc);
             discWrap.appendChild(percentSuffix);
 
-            const after=document.createElement('input');
-            after.type='text';
-            after.readOnly=true;
-            after.className='discountResult';
+            const after = document.createElement('input');
+            after.type = 'text';
+            after.readOnly = true;
+            after.className = 'discountResult';
 
             grid.appendChild(lblD);
             grid.appendChild(lblAfter);
@@ -170,165 +171,167 @@
             grid.appendChild(after);
             discountWrap.appendChild(grid);
 
-            const old=inputEl;
-            const placeholder=document.createElement('span');
-            c.replaceChild(placeholder,old);
+            const old = inputEl;
+            const placeholder = document.createElement('span');
+            c.replaceChild(placeholder, old);
             row.appendChild(old);
             row.appendChild(btn);
-            c.replaceChild(row,placeholder);
-            c.insertBefore(discountWrap,row.nextSibling);
+            c.replaceChild(row, placeholder);
+            c.insertBefore(discountWrap, row.nextSibling);
 
-            function normDiscount(raw){
-                if(!Number.isFinite(raw)||raw<0)return 0;
-                return raw>1?raw/100:raw;
+            function normDiscount(raw) {
+                if (!Number.isFinite(raw) || raw < 0) return 0;
+                return raw > 1 ? raw / 100 : raw;
             }
-            function adjusted(){
-                const p=toNum(old.value);
-                const dRaw=toNum(disc.value);
-                const d=normDiscount(dRaw);
-                if(Number.isFinite(p)){
-                    const val=preciseRound(p*(1-d),2);
-                    const fixed=val.toFixed(2);
-                    after.value=fixed;
-                    after.dataset.rounded=fixed;
-                }else{
-                    after.value='';
-                    after.dataset.rounded='';
+            function adjusted() {
+                const p = toNum(old.value);
+                const dRaw = toNum(disc.value);
+                const d = normDiscount(dRaw);
+                if (Number.isFinite(p)) {
+                    const val = preciseRound(p * (1 - d), 2);
+                    const fixed = val.toFixed(2);
+                    after.value = fixed;
+                    after.dataset.rounded = fixed;
+                } else {
+                    after.value = '';
+                    after.dataset.rounded = '';
                 }
             }
 
-            disc.oninput=adjusted;
-            old.oninput=adjusted;
+            disc.oninput = adjusted;
+            old.oninput = adjusted;
 
-            btn.onclick=()=>{
-                const willShow = discountWrap.style.display==='none'||discountWrap.style.display==='';
-                discountWrap.style.display = willShow ? 'block':'none';
+            btn.onclick = () => {
+                const willShow = discountWrap.style.display === 'none' || discountWrap.style.display === '';
+                discountWrap.style.display = willShow ? 'block' : 'none';
                 adjusted();
-                if(willShow){
-                    setTimeout(()=>{ disc.focus(); disc.select(); },0);
+                if (willShow) {
+                    setTimeout(() => { disc.focus(); disc.select(); }, 0);
                 }
             };
         }
 
-        function addEmptyInput(){
-            const c=document.getElementById('subTotalsContainer');
-            const i=document.createElement('input');
-            i.type='text';
-            i.inputMode='decimal';
-            i.className='subTotalInput';
+        function addEmptyInput() {
+            const c = document.getElementById('subTotalsContainer');
+            const i = document.createElement('input');
+            i.type = 'text';
+            i.inputMode = 'decimal';
+            i.className = 'subTotalInput';
             c.appendChild(i);
             makeLineForInput(i);
             attachBehavior(i);
         }
 
-        function attachBehavior(inputEl){
-            inputEl.oninput=()=>{ if(isLastInput(inputEl)&&inputEl.value.trim()!=='') addEmptyInput(); };
-            inputEl.onkeydown=(event)=>{ if(event.key==='Enter'){ event.preventDefault(); calcTax(); } };
+        function attachBehavior(inputEl) {
+            inputEl.oninput = () => { if (isLastInput(inputEl) && inputEl.value.trim() !== '') addEmptyInput(); };
+            inputEl.onkeydown = (event) => { if (event.key === 'Enter') { event.preventDefault(); calcTax(); } };
         }
 
-        (function initMulti(){
-            const first=document.getElementById('subTotal');
+        (function initMulti() {
+            const first = document.getElementById('subTotal');
             makeLineForInput(first);
             attachBehavior(first);
         })();
 
-        function clearResults(){
-            document.getElementById('subtotalAll').value="";
-            document.getElementById('tax').value="";
-            document.getElementById('outTheDoorPrice').value="";
-            document.getElementById('frml').value="";
-            document.getElementById('frmlExpanded').value="";
-            document.getElementById('frmlExpandedValues').value="";
-            document.getElementById('lblShor').innerText="";
-            document.getElementById('resultArea').style.display='none';
+        function clearResults() {
+            document.getElementById('subtotalAll').value = "";
+            document.getElementById('tax').value = "";
+            document.getElementById('outTheDoorPrice').value = "";
+            document.getElementById('frml').value = "";
+            document.getElementById('frmlExpanded').value = "";
+            document.getElementById('frmlExpandedValues').value = "";
+            document.getElementById('lblShor').innerText = "";
+            document.getElementById('resultArea').style.display = 'none';
         }
 
-        function calcTax(){
-            const inputs=document.querySelectorAll('.subTotalInput');
-            const nums=[];
-            for(const el of inputs){
-                const wrap=el.parentElement.nextElementSibling;
-                let d=0;
-                let line=NaN;
-                if(wrap&&wrap.classList.contains('discountWrap')){
+        function calcTax() {
+            const inputs = document.querySelectorAll('.subTotalInput');
+            const nums = [];
+
+            for (const el of inputs) {
+                const base = toNum(el.value);
+                if (!Number.isFinite(base)) continue;
+
+                let line = base;
+
+                const wrap = el.parentElement.nextElementSibling;
+                if (wrap && wrap.classList.contains('discountWrap')) {
                     const discEl = wrap.querySelector('.discountInput');
-                    const dv=toNum(discEl.value);
-                    if(Number.isFinite(dv)) d = dv>1?dv/100:Math.max(0,dv);
-                    const resEl = wrap.querySelector('.discountResult');
-                    const adj = toNum(resEl?.dataset.rounded);
-                    if(Number.isFinite(adj)) line = adj;
-                }
-                if(Number.isNaN(line)){
-                    const p=toNum(el.value);
-                    if(Number.isFinite(p)){
-                        line = preciseRound(p*(1-d),2);
+                    const dv = toNum(discEl.value);
+                    if (Number.isFinite(dv)) {
+                        const frac = dv > 1 ? dv / 100 : Math.max(0, dv);
+                        line = preciseRound(base * (1 - frac), 2);
+                    } else {
+                        line = preciseRound(base, 2);
                     }
+                } else {
+                    line = preciseRound(base, 2);
                 }
-                if(Number.isFinite(line)){
-                    nums.push(line);
-                }
+
+                nums.push(line);
             }
 
-            if(nums.length>1 && nums.some(v=>v>BRACKET_INTERVAL)){
+            if (nums.length > 1 && nums.some(v => v > BRACKET_INTERVAL)) {
                 clearResults();
                 showPopup('Single items over $1600 must be done on a separate sales ticket.');
                 return;
             }
 
-            const numberInput = preciseRound(nums.reduce((a,b)=>a+b,0),2);
+            const numberInput = preciseRound(nums.reduce((a, b) => a + b, 0), 2);
 
-            if(!Number.isFinite(numberInput)||numberInput===0){
+            if (!Number.isFinite(numberInput) || numberInput === 0) {
                 clearResults();
                 return;
             }
 
-            let result=0;
+            let result = 0;
 
-            if(nums.length>1){
-                result = numberInput*(BASE_STATE_TAX+LOCAL_TAX);
+            if (nums.length > 1) {
+                // multiple items, each <= 1600: use first bracket rate on total
+                result = numberInput * (BASE_STATE_TAX + LOCAL_TAX);
                 document.getElementById('lblShor').innerText = "multiple items <= 1600 each";
                 document.getElementById('frml').value = "x*1.0925";
                 document.getElementById('frmlExpanded').value = "subtotal * (BASE_STATE_TAX + LOCAL_TAX)";
                 document.getElementById('frmlExpandedValues').value = `${numberInput.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
             } else {
-                const single=nums[0];
-                if(single<=BRACKET_INTERVAL){
-                    result = single*(BASE_STATE_TAX+LOCAL_TAX);
+                const single = nums[0];
+                if (single <= BRACKET_INTERVAL) {
+                    result = single * (BASE_STATE_TAX + LOCAL_TAX);
                     document.getElementById('lblShor').innerText = "subtotal <= 1600";
                     document.getElementById('frml').value = "x*1.0925";
-                    document.getElementById('frmlExpanded').value = "numberInput + numberInput*(BASE_STATE_TAX+LOCAL_TAX)";
+                    document.getElementById('frmlExpanded').value = "numberInput + numberInput * (BASE_STATE_TAX + LOCAL_TAX)";
                     document.getElementById('frmlExpandedValues').value = `${single.toFixed(2)} + ${single.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
-                } else if(single<=BRACKET_INTERVAL*2.0){
+                } else if (single <= BRACKET_INTERVAL * 2.0) {
                     result =
-                        BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX) +
-                        (single-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX);
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
+                        (single - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
                     document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
                     document.getElementById('frml').value = "1.0975x−8";
                     document.getElementById('frmlExpanded').value =
-                        "BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX)+(x-BRACKET_INTERVAL)*(BASE_STATE_TAX+EXTRA_STATE_TAX)";
+                        "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (numberInput - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX)";
                     document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL.toFixed(2)} * (${BASE_STATE_TAX}+${LOCAL_TAX}) + (${single.toFixed(2)}-${BRACKET_INTERVAL.toFixed(2)}) * (${BASE_STATE_TAX}+${EXTRA_STATE_TAX})`;
+                        `${single.toFixed(2)} + ${BRACKET_INTERVAL.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + (${single.toFixed(2)} - ${BRACKET_INTERVAL.toFixed(2)}) * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX})`;
                 } else {
                     result =
-                        BRACKET_INTERVAL*(BASE_STATE_TAX+LOCAL_TAX) +
-                        BRACKET_INTERVAL*(BASE_STATE_TAX+EXTRA_STATE_TAX) +
-                        (single - BRACKET_INTERVAL*2)*BASE_STATE_TAX;
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) +
+                        BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) +
+                        (single - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
                     document.getElementById('lblShor').innerText = "subtotal > 3200";
                     document.getElementById('frml').value = "1.07x+80";
                     document.getElementById('frmlExpanded').value =
-                        "BRACKET_INTERVAL*(BASE+LOCAL)+BRACKET_INTERVAL*(BASE+EXTRA)+(x-2*BRACKET_INTERVAL)*BASE";
+                        "numberInput + BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (numberInput - BRACKET_INTERVAL * 2) * BASE_STATE_TAX";
                     document.getElementById('frmlExpandedValues').value =
-                        `${BRACKET_INTERVAL.toFixed(2)}*(${BASE_STATE_TAX}+${LOCAL_TAX}) + ${BRACKET_INTERVAL.toFixed(2)}*(${BASE_STATE_TAX}+${EXTRA_STATE_TAX}) + (${single.toFixed(2)} - ${(BRACKET_INTERVAL*2).toFixed(2)}) * ${BASE_STATE_TAX}`;
+                        `${single.toFixed(2)} + ${BRACKET_INTERVAL.toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX}) + ${BRACKET_INTERVAL.toFixed(2)} * (${BASE_STATE_TAX} + ${EXTRA_STATE_TAX}) + (${single.toFixed(2)} - ${(BRACKET_INTERVAL * 2).toFixed(2)}) * ${BASE_STATE_TAX}`;
                 }
             }
 
-            const roundedTax = preciseRound(result,2);
-            const total = preciseRound(numberInput + roundedTax,2);
+            const roundedTax = preciseRound(result, 2);
+            const total = preciseRound(numberInput + roundedTax, 2);
 
             document.getElementById('subtotalAll').value = numberInput.toFixed(2);
             document.getElementById('tax').value = roundedTax.toFixed(2);
             document.getElementById('outTheDoorPrice').value = total.toFixed(2);
-            document.getElementById('resultArea').style.display='block';
+            document.getElementById('resultArea').style.display = 'block';
 
             writeToLog(`
 RING IT UP
@@ -338,6 +341,7 @@ Out The Door Price: ${total.toFixed(2)}
 `);
         }
 
+        //make enter the accept button
         document.getElementById('subTotal').onkeydown = function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
