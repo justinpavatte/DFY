@@ -120,9 +120,9 @@
             }
             let roundedTax = preciseRound(tax, 2);
 
-            document.getElementById('subTotal').value = roundedSubtotal;
-            document.getElementById('tax').value = roundedTax;
-            document.getElementById('outTheDoorPrice').value = roundedSubtotal + roundedTax;
+            document.getElementById('subTotal').value = roundedSubtotal.toFixed(2);
+            document.getElementById('tax').value = roundedTax.toFixed(2);
+            document.getElementById('outTheDoorPrice').value = (roundedSubtotal + roundedTax).toFixed(2);
             
             document.getElementById('resultArea').style.display = 'block';
             
