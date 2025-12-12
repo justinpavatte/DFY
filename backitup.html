@@ -64,7 +64,6 @@
         </div>
     </div>
     <script src="constants.js"></script>
-    <script src="helpers.js"></script>
     <script src="todoist.js"></script>
     <script>
         function calcSubtotal() {
@@ -79,50 +78,70 @@
 
             let numberInput = parseFloat(inputValue);
 
-            let result = 0;
-            let lowBracketResult = numberInput / (1.0 + BASE_STATE_TAX + LOCAL_TAX);
-            let midBracketResult = (numberInput - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)
-            let highBracketResult = (numberInput - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)
-            if (lowBracketResult <= BRACKET_INTERVAL) {
-                result = lowBracketResult;
+            const roundDiv = (num, den) => (num + (den / 2n)) / den;
+            const toCents = (v) => BigInt(Math.round(v * 100));
+            const fromCents = (c) => Number(c) / 100;
+            const toBps = (rate) => BigInt(Math.round(rate * 10000));
+
+            const outTheDoorCents = toCents(numberInput);
+            const bracketCents = toCents(BRACKET_INTERVAL);
+
+            let subtotalCents = 0n;
+
+            const lowDenBps = 10000n + toBps(BASE_STATE_TAX + LOCAL_TAX);
+            const lowSubtotalCents = roundDiv(outTheDoorCents * 10000n, lowDenBps);
+
+            const midNumCents = outTheDoorCents - roundDiv(bracketCents * toBps(LOCAL_TAX), 10000n) + roundDiv(bracketCents * toBps(EXTRA_STATE_TAX), 10000n);
+            const midDenBps = 10000n + toBps(BASE_STATE_TAX + EXTRA_STATE_TAX);
+            const midSubtotalCents = roundDiv(midNumCents * 10000n, midDenBps);
+
+            const highNumCents = outTheDoorCents - roundDiv(bracketCents * toBps(LOCAL_TAX), 10000n) - roundDiv(bracketCents * toBps(EXTRA_STATE_TAX), 10000n);
+            const highDenBps = 10000n + toBps(BASE_STATE_TAX);
+            const highSubtotalCents = roundDiv(highNumCents * 10000n, highDenBps);
+
+            if (fromCents(lowSubtotalCents) <= BRACKET_INTERVAL) {
+                subtotalCents = lowSubtotalCents;
                 document.getElementById('lblShor').innerText = "subtotal <= 1600";
                 document.getElementById('frml').value = "x/1.0925";
                 document.getElementById('frmlExpanded').value = "numberInput / (1.0 + BASE_STATE_TAX + LOCAL_TAX)";
                 document.getElementById('frmlExpandedValues').value = `${numberInput} / (1.0 + ${BASE_STATE_TAX} + ${LOCAL_TAX})`;
             }
-            else if (midBracketResult <= BRACKET_INTERVAL * 2.0) {
-                result = midBracketResult;
+            else if (fromCents(midSubtotalCents) <= BRACKET_INTERVAL * 2.0) {
+                subtotalCents = midSubtotalCents;
                 document.getElementById('lblShor').innerText = "1600 < subtotal <= 3200";
                 document.getElementById('frml').value = "(x+8)/1.0975";
                 document.getElementById('frmlExpanded').value = "(numberInput - LOCAL_TAX * BRACKET_INTERVAL + EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX + EXTRA_STATE_TAX)";
                 document.getElementById('frmlExpandedValues').value = `(${numberInput} - ${LOCAL_TAX} * ${BRACKET_INTERVAL} + ${EXTRA_STATE_TAX} * ${BRACKET_INTERVAL}) / (1.0 + ${BASE_STATE_TAX} + ${EXTRA_STATE_TAX})`;
             }
             else {
-                result = highBracketResult;
+                subtotalCents = highSubtotalCents;
                 document.getElementById('lblShor').innerText = "subtotal > 3200";
                 document.getElementById('frml').value = "(x-80)/1.07";
                 document.getElementById('frmlExpanded').value = "(numberInput - LOCAL_TAX * BRACKET_INTERVAL - EXTRA_STATE_TAX * BRACKET_INTERVAL) / (1.0 + BASE_STATE_TAX)";
                 document.getElementById('frmlExpandedValues').value = `(${numberInput} - ${LOCAL_TAX} * ${BRACKET_INTERVAL} - ${EXTRA_STATE_TAX} * ${BRACKET_INTERVAL}) / (1.0 + ${BASE_STATE_TAX})`;
             }
 
-            let roundedSubtotal = preciseRound(result, 2);
+            let taxUnits = 0n;
 
-            //since we have a rounded subtotal, recalculate the sales tax and update screen accordingly
-            let tax = 0;
-            if (roundedSubtotal <= BRACKET_INTERVAL) {
-                tax = roundedSubtotal * (BASE_STATE_TAX + LOCAL_TAX);
+            if (subtotalCents <= bracketCents) {
+                taxUnits = subtotalCents * toBps(BASE_STATE_TAX + LOCAL_TAX);
             }
-            else if (roundedSubtotal <= BRACKET_INTERVAL * 2.0) {
-                tax = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + (roundedSubtotal - BRACKET_INTERVAL) * (BASE_STATE_TAX + EXTRA_STATE_TAX);
+            else if (subtotalCents <= bracketCents * 2n) {
+                taxUnits = bracketCents * toBps(BASE_STATE_TAX + LOCAL_TAX) + (subtotalCents - bracketCents) * toBps(BASE_STATE_TAX + EXTRA_STATE_TAX);
             }
             else {
-                tax = BRACKET_INTERVAL * (BASE_STATE_TAX + LOCAL_TAX) + BRACKET_INTERVAL * (BASE_STATE_TAX + EXTRA_STATE_TAX) + (roundedSubtotal - BRACKET_INTERVAL * 2) * BASE_STATE_TAX;
+                taxUnits = bracketCents * toBps(BASE_STATE_TAX + LOCAL_TAX) + bracketCents * toBps(BASE_STATE_TAX + EXTRA_STATE_TAX) + (subtotalCents - bracketCents * 2n) * toBps(BASE_STATE_TAX);
             }
-            let roundedTax = preciseRound(tax, 2);
+
+            const taxCents = roundDiv(taxUnits, 10000n);
+            const totalCents = subtotalCents + taxCents;
+
+            const roundedSubtotal = fromCents(subtotalCents);
+            const roundedTax = fromCents(taxCents);
 
             document.getElementById('subTotal').value = roundedSubtotal.toFixed(2);
             document.getElementById('tax').value = roundedTax.toFixed(2);
-            document.getElementById('outTheDoorPrice').value = (roundedSubtotal + roundedTax).toFixed(2);
+            document.getElementById('outTheDoorPrice').value = fromCents(totalCents).toFixed(2);
             
             document.getElementById('resultArea').style.display = 'block';
             

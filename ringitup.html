@@ -73,7 +73,6 @@
     </div>
 
     <script src="constants.js"></script>
-    <script src="helpers.js"></script>
     <script src="todoist.js"></script>
 
     <script>
@@ -98,6 +97,10 @@
             const inputs = document.querySelectorAll('.subTotalInput');
             return inputs.length && inputs[inputs.length - 1] === el;
         }
+
+        const roundDiv = (num, den) => (num + (den / 2n)) / den;
+        const toCents = (v) => BigInt(Math.round(v * 100));
+        const fromCents = (c) => Number(c) / 100;
 
         function makeLineForInput(inputEl) {
             const c = document.getElementById('subTotalsContainer');
@@ -187,9 +190,14 @@
                 const p = toNum(old.value);
                 const dRaw = toNum(disc.value);
                 const d = normDiscount(dRaw);
+
                 if (Number.isFinite(p)) {
-                    const val = preciseRound(p * (1 - d), 2);
-                    const fixed = val.toFixed(2);
+                    const baseCents = toCents(p);
+                    const discBps = BigInt(Math.round(d * 10000));
+                    const multBps = 10000n - (discBps < 0n ? 0n : discBps > 10000n ? 10000n : discBps);
+                    const valCents = roundDiv(baseCents * multBps, 10000n);
+
+                    const fixed = fromCents(valCents).toFixed(2);
                     after.value = fixed;
                     after.dataset.rounded = fixed;
                 } else {
@@ -245,13 +253,13 @@
         }
 function calcTax() {
     const inputs = document.querySelectorAll('.subTotalInput');
-    const nums = [];
+    const itemCents = [];
 
     for (const el of inputs) {
         const base = toNum(el.value);
         if (!Number.isFinite(base)) continue;
 
-        let line = base;
+        let lineCents = toCents(base);
 
         const wrap = el.parentElement.nextElementSibling;
         if (wrap && wrap.classList.contains('discountWrap')) {
@@ -259,29 +267,26 @@ function calcTax() {
             const dv = toNum(discEl.value);
             if (Number.isFinite(dv)) {
                 const frac = dv > 1 ? dv / 100 : Math.max(0, dv);
-                line = preciseRound(base * (1 - frac), 2);
-            } else {
-                line = preciseRound(base, 2);
+                const discBps = BigInt(Math.round(frac * 10000));
+                const multBps = 10000n - (discBps < 0n ? 0n : discBps > 10000n ? 10000n : discBps);
+                lineCents = roundDiv(lineCents * multBps, 10000n);
             }
-        } else {
-            line = preciseRound(base, 2);
         }
 
-        nums.push(line);
+        itemCents.push(lineCents);
     }
 
-    if (nums.length > 1 && nums.some(v => v > BRACKET_INTERVAL)) {
+    const bracketCents = toCents(BRACKET_INTERVAL);
+
+    if (itemCents.length > 1 && itemCents.some(v => v > bracketCents)) {
         clearResults();
         showPopup('Single items over $1600 must be done on a separate sales ticket.');
         return;
     }
 
-    const toCents = (v) => BigInt(Math.round(v * 100));
-    const fromCents = (c) => Number(c) / 100;
     const toBps = (rate) => BigInt(Math.round(rate * 10000));
-    const roundDiv = (num, den) => (num + (den / 2n)) / den;
 
-    const subtotalCents = nums.reduce((acc, v) => acc + toCents(v), 0n);
+    const subtotalCents = itemCents.reduce((acc, v) => acc + v, 0n);
 
     if (subtotalCents === 0n) {
         clearResults();
@@ -290,7 +295,7 @@ function calcTax() {
 
     let taxUnits = 0n;
 
-    if (nums.length > 1) {
+    if (itemCents.length > 1) {
         const rateBps = toBps(BASE_STATE_TAX + LOCAL_TAX);
         taxUnits = subtotalCents * rateBps;
         document.getElementById('lblShor').innerText = "multiple items <= 1600 each";
@@ -298,8 +303,7 @@ function calcTax() {
         document.getElementById('frmlExpanded').value = "subtotal * (BASE_STATE_TAX + LOCAL_TAX)";
         document.getElementById('frmlExpandedValues').value = `${fromCents(subtotalCents).toFixed(2)} * (${BASE_STATE_TAX} + ${LOCAL_TAX})`;
     } else {
-        const singleCents = toCents(nums[0]);
-        const bracketCents = toCents(BRACKET_INTERVAL);
+        const singleCents = itemCents[0];
 
         if (singleCents <= bracketCents) {
             const rateBps = toBps(BASE_STATE_TAX + LOCAL_TAX);
